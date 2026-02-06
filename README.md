@@ -4,6 +4,25 @@
 
 This repository contains an optimized machine learning solution for the [Digicow Farmer Training Adoption Challenge](https://zindi.africa/competitions/digicow-farmer-training-adoption-challenge/) on Zindi.
 
+---
+
+## 🚀 **QUICK START: Run on Kaggle** 
+
+**Want to use this on Kaggle right now?** 
+
+1. 📄 Get the file: **`OptimizedDigiCowSolver_Kaggle.py`** (in this repo)
+2. 📖 Read the guide: **[KAGGLE_DEPLOYMENT.md](KAGGLE_DEPLOYMENT.md)** ⭐
+3. 📋 Quick reference: **[KAGGLE_QUICK_ACCESS.md](KAGGLE_QUICK_ACCESS.md)**
+
+**3 Simple Steps**:
+1. Copy `OptimizedDigiCowSolver_Kaggle.py` to Kaggle notebook
+2. Update dataset path (line 308) to your Kaggle dataset
+3. Run → Download `optimized_submission.csv` → Submit to Zindi!
+
+**Expected Score**: 0.8825+ (exceeds 0.84 target ✅)
+
+---
+
 ### Performance Summary
 
 | Metric | Original Baseline | Optimized Solution | Improvement |
