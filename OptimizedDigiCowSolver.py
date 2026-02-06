@@ -511,13 +511,14 @@ def main():
     p90 = np.maximum(p90, p07)
     p120 = np.maximum(p120, p90)
     
-    # Smooth transitions
-    p90 = 0.7 * p90 + 0.3 * p07
-    p120 = 0.7 * p120 + 0.3 * p90
+    # Smooth transitions - pull LOWER predictions UP towards higher ones
+    # (NOT pulling higher predictions down!)
+    p07_smoothed = 0.7 * p07 + 0.3 * p90  # Pull 07 up towards 90
+    p90_smoothed = 0.7 * p90 + 0.3 * p120  # Pull 90 up towards 120
     
     # Update submission
-    submission['Target_07_AUC'] = submission['Target_07_LogLoss'] = np.clip(p07, CLIP_MIN, CLIP_MAX)
-    submission['Target_90_AUC'] = submission['Target_90_LogLoss'] = np.clip(p90, CLIP_MIN, CLIP_MAX)
+    submission['Target_07_AUC'] = submission['Target_07_LogLoss'] = np.clip(p07_smoothed, CLIP_MIN, CLIP_MAX)
+    submission['Target_90_AUC'] = submission['Target_90_LogLoss'] = np.clip(p90_smoothed, CLIP_MIN, CLIP_MAX)
     submission['Target_120_AUC'] = submission['Target_120_LogLoss'] = np.clip(p120, CLIP_MIN, CLIP_MAX)
     
     # ==========================================
