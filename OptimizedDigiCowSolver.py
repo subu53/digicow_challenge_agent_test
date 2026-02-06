@@ -402,18 +402,21 @@ def main():
                 hgb_params = {
                     'max_iter': 1000, 'learning_rate': 0.01, 'max_depth': 7,
                     'min_samples_leaf': 20, 'l2_regularization': 2.0,
+                    'class_weight': 'balanced',
                     'random_state': RANDOM_STATE
                 }
             elif target_name == '90':
                 hgb_params = {
                     'max_iter': 800, 'learning_rate': 0.02, 'max_depth': 8,
                     'min_samples_leaf': 15, 'l2_regularization': 1.0,
+                    'class_weight': 'balanced',
                     'random_state': RANDOM_STATE
                 }
             else:
                 hgb_params = {
                     'max_iter': 600, 'learning_rate': 0.03, 'max_depth': 9,
                     'min_samples_leaf': 10, 'l2_regularization': 0.5,
+                    'class_weight': 'balanced',
                     'random_state': RANDOM_STATE
                 }
             
@@ -425,7 +428,8 @@ def main():
             # ===== MODEL 2: RF =====
             rf = RandomForestClassifier(
                 n_estimators=300, max_depth=14, min_samples_leaf=4,
-                max_features='sqrt', n_jobs=-1, random_state=RANDOM_STATE
+                max_features='sqrt', class_weight='balanced',
+                n_jobs=-1, random_state=RANDOM_STATE
             )
             rf.fit(X_tr_final, y_tr)
             p_rf_val = rf.predict_proba(X_val_final)[:, 1]
@@ -434,7 +438,8 @@ def main():
             # ===== MODEL 3: ET =====
             et = ExtraTreesClassifier(
                 n_estimators=200, max_depth=16, min_samples_leaf=3,
-                max_features='sqrt', n_jobs=-1, random_state=RANDOM_STATE
+                max_features='sqrt', class_weight='balanced',
+                n_jobs=-1, random_state=RANDOM_STATE
             )
             et.fit(X_tr_final, y_tr)
             p_et_val = et.predict_proba(X_val_final)[:, 1]
@@ -442,9 +447,15 @@ def main():
             
             # ===== MODEL 4: XGB (if available) =====
             if HAS_XGB:
+                # Calculate scale_pos_weight for XGBoost
+                neg_count = len(y_tr) - np.sum(y_tr)
+                pos_count = np.sum(y_tr)
+                scale_pos_weight = neg_count / pos_count if pos_count > 0 else 1.0
+                
                 xgb = XGBClassifier(
                     n_estimators=500, learning_rate=0.02, max_depth=7,
                     subsample=0.8, colsample_bytree=0.8,
+                    scale_pos_weight=scale_pos_weight,
                     random_state=RANDOM_STATE, n_jobs=-1,
                     eval_metric='logloss', verbosity=0
                 )
@@ -500,13 +511,14 @@ def main():
     p90 = np.maximum(p90, p07)
     p120 = np.maximum(p120, p90)
     
-    # Smooth transitions
-    p90 = 0.7 * p90 + 0.3 * p07
-    p120 = 0.7 * p120 + 0.3 * p90
+    # Smooth transitions - pull LOWER predictions UP towards higher ones
+    # (NOT pulling higher predictions down!)
+    p07_smoothed = 0.7 * p07 + 0.3 * p90  # Pull 07 up towards 90
+    p90_smoothed = 0.7 * p90 + 0.3 * p120  # Pull 90 up towards 120
     
     # Update submission
-    submission['Target_07_AUC'] = submission['Target_07_LogLoss'] = np.clip(p07, CLIP_MIN, CLIP_MAX)
-    submission['Target_90_AUC'] = submission['Target_90_LogLoss'] = np.clip(p90, CLIP_MIN, CLIP_MAX)
+    submission['Target_07_AUC'] = submission['Target_07_LogLoss'] = np.clip(p07_smoothed, CLIP_MIN, CLIP_MAX)
+    submission['Target_90_AUC'] = submission['Target_90_LogLoss'] = np.clip(p90_smoothed, CLIP_MIN, CLIP_MAX)
     submission['Target_120_AUC'] = submission['Target_120_LogLoss'] = np.clip(p120, CLIP_MIN, CLIP_MAX)
     
     # ==========================================
