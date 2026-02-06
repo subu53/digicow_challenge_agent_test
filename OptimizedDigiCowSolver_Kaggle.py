@@ -321,7 +321,7 @@ def main():
     # ==========================================
     # FEATURE ENGINEERING
     # ==========================================
-    print("\n�� Creating features...")
+    print("\n🔧 Creating features...")
     
     # Combine for consistent encoding
     all_data = pd.concat([train_raw, test_raw], axis=0, ignore_index=True)
